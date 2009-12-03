@@ -44,13 +44,14 @@ int LowLevelProcessor::getReadFD() {
 
 void LowLevelProcessor::setLaserOverride(bool v)
 {
-  uint8_t buff[5];
+  static const int len=5;
+  uint8_t buff[len];
   buff[0]='#';
-  buff[1]=5;
+  buff[1]=len;
   buff[2]=LaserOverride;
   buff[3]=v?1:0;
   buff[4]='\n';
-  writePacket(buff,5,200);
+  writePacket(buff,len,200);
 
 }
 
@@ -59,14 +60,54 @@ void LowLevelProcessor::setLaserOverride(bool v)
 
 void LowLevelProcessor::setLEDs(const uint8_t& value)
 {
-  uint8_t buff[5];
+  static const int len=5;
+  uint8_t buff[len];
   buff[0]='#';
-  buff[1]=5;
-  buff[2]=LEDValue;
+  buff[1]=len;
+  buff[2]=SetLEDValue;
   buff[3]=value;
   buff[4]='\n';
-  writePacket(buff,5,200);
+  writePacket(buff,len,200);
 }
+
+
+void LowLevelProcessor::setLongExposure(uint16_t value)
+{
+  static const int len=6;
+  uint8_t buff[len];
+  buff[0]='#';
+  buff[1]=len;
+  buff[2]=SetLongExposure;
+  memcpy(&buff[3],&value,2);
+  buff[4]='\n';
+  writePacket(buff,len,200);
+
+}
+
+void LowLevelProcessor::setShortExposure(uint16_t value)
+{
+  static const int len=6;
+  uint8_t buff[len];
+  buff[0]='#';
+  buff[1]=len;
+  buff[2]=SetShortExposure;
+  memcpy(&buff[3],&value,2);
+  buff[4]='\n';
+  writePacket(buff,len,200);
+}
+
+void LowLevelProcessor::setServoValue(uint16_t value)
+{
+  static const int len=6;
+  uint8_t buff[len];
+  buff[0]='#';
+  buff[1]=len;
+  buff[2]=SetServoValue;
+  memcpy(&buff[3],&value,2);
+  buff[4]='\n';
+  writePacket(buff,len,200);
+}
+
 
 
 
@@ -79,7 +120,7 @@ bool LowLevelProcessor::getData(double &depth){
       {
 	int32_t value;
 	memcpy(&value,packed+3,4);
-	depth = value;
+	depth = value*DEPTHFACTOR;
 	break;
       }
       case TemperatureValue:
@@ -87,7 +128,7 @@ bool LowLevelProcessor::getData(double &depth){
 	int temp= (packed[3] | packed[4] << 8);
 	break;
       }
-      case LEDValue:
+      case SetLEDValue:
       {
 	
 	break;

@@ -4,6 +4,8 @@
 #include <string>
 #include <iodrivers_base.hh>
 
+#define DEPTHFACTOR -0.00228881835938
+
 
 
 #if 0
@@ -16,9 +18,12 @@ public:
 	enum MessageType{
 	  DepthValue=0,
 	  TemperatureValue,
-	  LEDValue,
+	  SetLEDValue,
 	  String,
-	  LaserOverride
+	  LaserOverride,
+	  SetLongExposure,
+	  SetShortExposure,
+	  SetServoValue
 	};
 	
 	LowLevelProcessor();
@@ -28,7 +33,9 @@ public:
 	bool getData(double &depth);
 	void setLEDs(uint8_t const &value);
 	void setLaserOverride(bool v);
-	
+	void setShortExposure(uint16_t value);
+	void setLongExposure(uint16_t value);
+	void setServoValue(uint16_t value);
 
   private:
 	double depthValue;
