@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <sensors/sensors.h>
-#include <sensors/chips.h>
 #include <stdlib.h>
 #include <iostream>
 #include <unistd.h>
