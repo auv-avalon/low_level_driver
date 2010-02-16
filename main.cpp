@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
   llpc.init(std::string(argv[1]));
   
   if(argc == 4){
-      llpc.setLEDs(atoi(argv[2]));
+      llpc.setLongExposure(atoi(argv[2]));
     if(argv[3][0] == '1'){
       llpc.setLaserOverride(true);
     }else{
