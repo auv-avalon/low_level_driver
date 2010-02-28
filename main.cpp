@@ -15,13 +15,13 @@ int main(int argc, char* argv[]) {
       llpc.setLaserOverride(false);
     }
   }
-  //else
+  else
   {
   
   
     while(1){
       double depth;
-      uint8_t leds=0;;
+      uint8_t leds=0;
       try {
 	if(llpc.getData(depth)){
 	  fprintf(stdout,"Depth: %f\r",depth);

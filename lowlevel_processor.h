@@ -24,7 +24,8 @@ public:
 	  SetLongExposure,
 	  SetShortExposure,
 	  SetServoValue,
-	  Reset
+	  Reset,
+	  CalibrateDepth
 	};
 	
 	LowLevelProcessor();
@@ -35,6 +36,7 @@ public:
 	void setLEDs(uint8_t const &value);
 	void setLaserOverride(bool v);
 	void reset();
+	void calibrateDepth();
 	void setShortExposure(uint16_t value);
 	void setLongExposure(uint16_t value);
 	void setServoValue(uint16_t value);

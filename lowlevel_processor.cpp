@@ -32,7 +32,12 @@ LowLevelProcessor::~LowLevelProcessor(){
 }
 
 bool LowLevelProcessor::init(std::string const &port){
-	return openSerial(port,115200);
+	bool v = openSerial(port,115200);
+	if(v){
+		calibrateDepth();
+		return true;
+	}
+	return false;
 }
 
 int LowLevelProcessor::getReadFD() {
@@ -62,7 +67,16 @@ void LowLevelProcessor::setLaserOverride(bool v)
 }
 
 
+void LowLevelProcessor::calibrateDepth(){
+  static const int len=4;
+  uint8_t buff[len];
+  buff[0]='#';
+  buff[1]=len;
+  buff[2]=CalibrateDepth;
+  buff[3]='\n';
+  writePacket(buff,len,200);
 
+}
 
 void LowLevelProcessor::setLEDs(const uint8_t& value)
 {
