@@ -23,7 +23,8 @@ public:
 	  LaserOverride,
 	  SetLongExposure,
 	  SetShortExposure,
-	  SetServoValue
+	  SetServoValue,
+	  Reset
 	};
 	
 	LowLevelProcessor();
@@ -33,6 +34,7 @@ public:
 	bool getData(double &depth);
 	void setLEDs(uint8_t const &value);
 	void setLaserOverride(bool v);
+	void reset();
 	void setShortExposure(uint16_t value);
 	void setLongExposure(uint16_t value);
 	void setServoValue(uint16_t value);

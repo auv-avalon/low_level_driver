@@ -7,6 +7,10 @@ pkg_check_modules(IO REQUIRED "iodrivers_base")
 INCLUDE_DIRECTORIES(${IO_INCLUDE_DIRS})
 LINK_DIRECTORIES(${IO_LIBRARY_DIRS})
 
+add_executable(lowlevel_reset
+	lowlevel_processor.cpp
+	main-reset.cpp
+)
 
 add_executable(lowlevel_test
 	lowlevel_processor.cpp
@@ -22,6 +26,10 @@ TARGET_LINK_LIBRARIES(lowlevelDriver
 )
 
 TARGET_LINK_LIBRARIES(lowlevel_test 
+	${IO_LIBRARIES}
+)
+
+TARGET_LINK_LIBRARIES(lowlevel_reset
 	${IO_LIBRARIES}
 )
 

@@ -39,6 +39,15 @@ int LowLevelProcessor::getReadFD() {
 	return getFileDescriptor();
 }
 
+void LowLevelProcessor::reset(){
+  static const int len=4;
+  uint8_t buff[len];
+  buff[0]='#';
+  buff[1]=len;
+  buff[2]=Reset;
+  buff[3]='\n';
+  writePacket(buff,len,200);
+}
 
 void LowLevelProcessor::setLaserOverride(bool v)
 {
@@ -50,7 +59,6 @@ void LowLevelProcessor::setLaserOverride(bool v)
   buff[3]=v?1:0;
   buff[4]='\n';
   writePacket(buff,len,200);
-
 }
 
 
@@ -77,7 +85,7 @@ void LowLevelProcessor::setLongExposure(uint16_t value)
   buff[1]=len;
   buff[2]=SetLongExposure;
   memcpy(&buff[3],&value,2);
-  buff[4]='\n';
+  buff[5]='\n';
   writePacket(buff,len,200);
 
 }
@@ -90,7 +98,7 @@ void LowLevelProcessor::setShortExposure(uint16_t value)
   buff[1]=len;
   buff[2]=SetShortExposure;
   memcpy(&buff[3],&value,2);
-  buff[4]='\n';
+  buff[5]='\n';
   writePacket(buff,len,200);
 }
 
@@ -102,7 +110,7 @@ void LowLevelProcessor::setServoValue(uint16_t value)
   buff[1]=len;
   buff[2]=SetServoValue;
   memcpy(&buff[3],&value,2);
-  buff[4]='\n';
+  buff[5]='\n';
   writePacket(buff,len,200);
 }
 
@@ -118,7 +126,7 @@ bool LowLevelProcessor::getData(double &depth){
       {
 	int32_t value;
 	memcpy(&value,packed+3,4);
-	depth = value*DEPTHFACTOR;
+	depth = value;//*DEPTHFACTOR;
 	break;
       }
       case TemperatureValue:
