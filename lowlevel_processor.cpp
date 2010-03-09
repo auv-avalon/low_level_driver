@@ -56,7 +56,7 @@ void LowLevelProcessor::reset(){
 
 void LowLevelProcessor::setLaserOverride(bool v)
 {
-  static const int len=5;
+  static const int len=4;
   uint8_t buff[len];
   buff[0]='#';
   buff[1]=len;
@@ -93,7 +93,8 @@ void LowLevelProcessor::setLEDs(const uint8_t& value)
 
 void LowLevelProcessor::setLongExposure(uint16_t value)
 {
-  static const int len=6;
+  return;
+  static const int len=5;
   uint8_t buff[len];
   buff[0]='#';
   buff[1]=len;
@@ -106,14 +107,18 @@ void LowLevelProcessor::setLongExposure(uint16_t value)
 
 void LowLevelProcessor::setShortExposure(uint16_t value)
 {
-  static const int len=6;
+	return;
+  static const int len=5;
   uint8_t buff[len];
   buff[0]='#';
   buff[1]=len;
   buff[2]=SetShortExposure;
   memcpy(&buff[3],&value,2);
   buff[5]='\n';
-  writePacket(buff,len,200);
+  printf("Writing packed: \n");
+  for(int i=0;i<len;i++)printf("%i ",buff[i]);
+  printf("\n");
+  writePacket(buff,len,500);
 }
 
 void LowLevelProcessor::setServoValue(uint16_t value)
@@ -140,7 +145,7 @@ bool LowLevelProcessor::getData(double &depth){
       {
 	int32_t value;
 	memcpy(&value,packed+3,4);
-	depth = value;//*DEPTHFACTOR;
+	depth = value*DEPTHFACTOR;
 	break;
       }
       case TemperatureValue:
