@@ -93,7 +93,6 @@ void LowLevelProcessor::setLEDs(const uint8_t& value)
 
 void LowLevelProcessor::setLongExposure(uint16_t value)
 {
-  return;
   static const int len=5;
   uint8_t buff[len];
   buff[0]='#';
@@ -107,7 +106,6 @@ void LowLevelProcessor::setLongExposure(uint16_t value)
 
 void LowLevelProcessor::setShortExposure(uint16_t value)
 {
-	return;
   static const int len=5;
   uint8_t buff[len];
   buff[0]='#';
