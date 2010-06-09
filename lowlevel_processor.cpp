@@ -137,44 +137,47 @@ void LowLevelProcessor::setServoValue(uint16_t value)
 bool LowLevelProcessor::getData(double &depth){
   int bufsize = MAX_PACKET_SIZE;
   uint8_t packed[bufsize];
-  if(readPacket(packed,bufsize,10000,10000)){
-    switch(packed[2]){
+
+  try
+  {
+      readPacket(packed,bufsize,10,10);
+  }
+  catch(timeout_error) { return false; }
+
+  switch(packed[2]){
       case DepthValue:
       {
-	int32_t value;
-	memcpy(&value,packed+3,4);
-	depth = value*DEPTHFACTOR;
-	break;
+        int32_t value;
+        memcpy(&value,packed+3,4);
+        depth = value*DEPTHFACTOR;
+        break;
       }
       case TemperatureValue:
       {
-	int temp= (packed[3] | packed[4] << 8);
-	break;
+        int temp= (packed[3] | packed[4] << 8);
+        break;
       }
       case SetLEDValue:
       {
-	
-	break;
+        
+        break;
       }
       case String:
       {
-	char c[packed[1]-3];
-	memcpy(c,&packed[3],packed[1]-4);
-	c[packed[1]-4]=0;
-	printf("Debug message: %s \n\n",c);
-	
-	break;
+        char c[packed[1]-3];
+        memcpy(c,&packed[3],packed[1]-4);
+        c[packed[1]-4]=0;
+        printf("Debug message: %s \n\n",c);
+        
+        break;
       }
       default:
       {
-	fprintf(stderr,"Cannot Handle Packed from type: %i\n",packed[2]);
-	return false;
+        fprintf(stderr,"Cannot Handle Packed from type: %i\n",packed[2]);
+        return false;
       }
-    }
-    return true;
-  }else{
-    return false;
   }
+  return true;
 }
 
 int LowLevelProcessor::extractPacket(uint8_t const* buffer, size_t buffer_size) const {
