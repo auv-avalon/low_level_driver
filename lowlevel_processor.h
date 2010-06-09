@@ -4,7 +4,7 @@
 #include <string>
 #include <iodrivers_base.hh>
 
-#define DEPTHFACTOR -0.00228881835938
+#define DEPTHFACTOR -0.00432
 
 
 
