@@ -213,12 +213,15 @@ bool LowLevelProcessor::getData(){
   }
   if(targetServoValue != crumbServoValue){
   	setServoValue(targetServoValue);
+  	printf("Servo dosnt fit, re-requesting (should be %i, is %i\n)\n",targetServoValue,crumbServoValue);
   }
   if(targetLongExposure != crumbLongExposure){
   	setLongExposure(targetLongExposure);
+  	printf("Long Exposure dosnt fit, re-requesting (should be %i, is %i\n)\n",targetLongExposure,crumbLongExposure);
   }
   if(targetShortExposure != crumbShortExposure){
   	setShortExposure(targetShortExposure);
+  	printf("Short Exposure dosnt fit, re-requesting (should be %i, is %i\n)\n",targetShortExposure,crumbShortExposure);
   }
   return true;
 }
