@@ -155,7 +155,7 @@ bool LowLevelProcessor::getData(){
 
   try
   {
-      readPacket(packed,bufsize,10,10);
+      readPacket(packed,bufsize,1000,1000);
   }
   catch(timeout_error) { return false; }
 
