@@ -17,6 +17,11 @@ add_executable(lowlevel_reset
 	main-reset.cpp
 )
 
+add_executable(lowlevel_servo
+	lowlevel_processor.cpp
+	main-servo.cpp
+)
+
 add_executable(lowlevel_test
 	lowlevel_processor.cpp
 	main.cpp
@@ -27,6 +32,10 @@ add_library(lowlevelDriver SHARED
 )
 
 TARGET_LINK_LIBRARIES(lowlevelDriver 
+	${IO_LIBRARIES}
+)
+
+TARGET_LINK_LIBRARIES(lowlevel_servo
 	${IO_LIBRARIES}
 )
 

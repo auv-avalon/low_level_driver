@@ -45,6 +45,12 @@ public:
 	double depthValue;
 	static const int MAX_PACKET_SIZE = 256;
 	virtual int extractPacket(uint8_t const* buffer, size_t buffer_size) const;
+	uint16_t targetShortExposure;
+	uint16_t targetLongExposure;
+	uint16_t targetServoValue;
+	uint16_t crumbShortExposure;
+	uint16_t crumbLongExposure;
+	uint16_t crumbServoValue;
 #if 0
 	FILE *cpuTempFile;
 	
