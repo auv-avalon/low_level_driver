@@ -93,6 +93,10 @@ void LowLevelProcessor::setLEDs(const uint8_t& value)
 
 void LowLevelProcessor::setLongExposure(uint16_t value)
 {
+  if(value > 61000){
+  	fprintf(stderr,"Canno set values larger than 61000 otherwise low level elctronic crash, check this please\n");
+	return;
+  }
   static const int len=6;
   uint8_t buff[len];
   buff[0]='#';
