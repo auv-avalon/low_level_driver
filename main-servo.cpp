@@ -1,24 +1,19 @@
 #include <stdio.h>
 #include "lowlevel_processor.h"
 #include <stdlib.h>
- 
+#include <string.h>
+
 int main(int argc, char* argv[]) {
   LowLevelProcessor llpc;
-  llpc.init(std::string(argv[1]));
-  
-  if(argc == 5){
-      llpc.setShortExposure(atoi(argv[2]));
-      llpc.setLongExposure(atoi(argv[3]));
-    if(argv[4][0] == '1'){
-      llpc.setLaserOverride(true);
-    }else{
-      llpc.setLaserOverride(false);
-    }
+  uint16_t value = 0;
+  if(argc == 3){
+	value = atoi(argv[2]);
+  	llpc.init(std::string(argv[1]));
+	llpc.setServoValue(value);
+  }else{
+  	fprintf(stderr,"Please enter device name and PWM Value\n");
+	return -1;
   }
-//  else
-  {
-  
-  
     while(1){
       double depth;
       uint8_t leds=0;
@@ -29,10 +24,7 @@ int main(int argc, char* argv[]) {
 	//llpc.setLEDs(leds++);
       }catch(timeout_error t) {
 	printf("Timeout\n");
-  ;
-
       }
-
-    }
   }
+  return 0;
 }

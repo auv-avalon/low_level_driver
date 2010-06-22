@@ -24,6 +24,12 @@ LowLevelProcessor::LowLevelProcessor():
 		std::cerr << "Konnte CPU Port nicht öffnen\n";
 	}
 #endif
+  targetServoValue = 0;
+  crumbServoValue = 0;
+  targetLongExposure =0;
+  crumbLongExposure = 0;
+  targetShortExposure =0;
+  crumbShortExposure = 0;
 
 
 }
@@ -105,11 +111,15 @@ void LowLevelProcessor::setLongExposure(uint16_t value)
   memcpy(&buff[3],&value,2);
   buff[5]='\n';
   writePacket(buff,len,200);
-
+  targetLongExposure = value;
 }
 
 void LowLevelProcessor::setShortExposure(uint16_t value)
 {
+  if(value < 250){
+  	printf("Short Exposure is Below 250 not allowed!\n");
+	return;
+  }
   static const int len=6;
   uint8_t buff[len];
   buff[0]='#';
@@ -117,10 +127,10 @@ void LowLevelProcessor::setShortExposure(uint16_t value)
   buff[2]=SetShortExposure;
   memcpy(&buff[3],&value,2);
   buff[5]='\n';
-  printf("Writing packed: \n");
-  for(int i=0;i<len;i++)printf("%i ",buff[i]);
-  printf("\n");
+  //for(int i=0;i<len;i++)printf("%i ",buff[i]);
+  //printf("\n");
   writePacket(buff,len,500);
+  targetShortExposure = value;
 }
 
 void LowLevelProcessor::setServoValue(uint16_t value)
@@ -133,6 +143,7 @@ void LowLevelProcessor::setServoValue(uint16_t value)
   memcpy(&buff[3],&value,2);
   buff[5]='\n';
   writePacket(buff,len,200);
+  targetServoValue = value;
 }
 
 
@@ -161,6 +172,24 @@ bool LowLevelProcessor::getData(double &depth){
         int temp= (packed[3] | packed[4] << 8);
         break;
       }
+      case SetLongExposure:
+      {
+        crumbLongExposure= (packed[3] | packed[4] << 8);
+	printf("got Long value %i\n",crumbLongExposure);
+        break;
+      }
+      case SetShortExposure:
+      {
+        crumbShortExposure= (packed[3] | packed[4] << 8);
+	printf("got short value %i\n",crumbShortExposure);
+        break;
+      }
+      case SetServoValue:
+      {
+        crumbServoValue= (packed[3] | packed[4] << 8);
+	printf("got Servo value %i\n",crumbServoValue);
+        break;
+      }
       case SetLEDValue:
       {
         
@@ -180,6 +209,15 @@ bool LowLevelProcessor::getData(double &depth){
         fprintf(stderr,"Cannot Handle Packed from type: %i\n",packed[2]);
         return false;
       }
+  }
+  if(targetServoValue != crumbServoValue){
+  	setServoValue(targetServoValue);
+  }
+  if(targetLongExposure != crumbLongExposure){
+  	setLongExposure(targetLongExposure);
+  }
+  if(targetShortExposure != crumbShortExposure){
+  	setShortExposure(targetShortExposure);
   }
   return true;
 }
