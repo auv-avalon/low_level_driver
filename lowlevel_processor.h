@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iodrivers_base.hh>
+#include <base/time.h>
 
 #define DEPTHFACTOR -0.00432
 
@@ -32,7 +33,7 @@ public:
 	~LowLevelProcessor();
 	int getReadFD();
 	bool init(std::string const &port);
-	bool getData(double &depth);
+	bool getData();
 	void setLEDs(uint8_t const &value);
 	void setLaserOverride(bool v);
 	void reset();
@@ -41,8 +42,10 @@ public:
 	void setLongExposure(uint16_t value);
 	void setServoValue(uint16_t value);
 
-  private:
 	double depthValue;
+	base::Time depthTime;
+
+  private:
 	static const int MAX_PACKET_SIZE = 256;
 	virtual int extractPacket(uint8_t const* buffer, size_t buffer_size) const;
 	uint16_t targetShortExposure;

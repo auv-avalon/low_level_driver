@@ -149,7 +149,7 @@ void LowLevelProcessor::setServoValue(uint16_t value)
 
 
 
-bool LowLevelProcessor::getData(double &depth){
+bool LowLevelProcessor::getData(){
   int bufsize = MAX_PACKET_SIZE;
   uint8_t packed[bufsize];
 
@@ -164,7 +164,8 @@ bool LowLevelProcessor::getData(double &depth){
       {
         int32_t value;
         memcpy(&value,packed+3,4);
-        depth = value*DEPTHFACTOR;
+	depthTime = base::Time::now();
+        depthValue = value*DEPTHFACTOR;
         break;
       }
       case TemperatureValue:

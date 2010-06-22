@@ -20,17 +20,17 @@ int main(int argc, char* argv[]) {
   
   
     while(1){
-      double depth;
       uint8_t leds=0;
+      base::Time last_depth_time;
       try {
-	if(llpc.getData(depth)){
-	  fprintf(stdout,"Depth: %f\r",depth);
+	llpc.getData();
+	if (last_depth_time != llpc.depthTime)
+	{
+	  fprintf(stdout,"Depth: %f\r",llpc.depthValue);
 	}
 	//llpc.setLEDs(leds++);
       }catch(timeout_error t) {
 	printf("Timeout\n");
-  ;
-
       }
 
     }
