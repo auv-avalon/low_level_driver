@@ -112,6 +112,10 @@ void LowLevelProcessor::setLongExposure(uint16_t value)
 
 void LowLevelProcessor::setShortExposure(uint16_t value)
 {
+  if(value < 250){
+  	printf("Short Exposure is Below 250 not allowed!\n");
+	return;
+  }
   static const int len=6;
   uint8_t buff[len];
   buff[0]='#';
