@@ -40,7 +40,7 @@ public:
 	~LowLevelProcessor();
 	int getReadFD();
 	bool init(std::string const &port);
-	bool getData();
+	bool getData(bool reRequest=false);
 	void setLEDs(uint8_t const &value);
 	void setLaserOverride(bool v);
 	void reset();
