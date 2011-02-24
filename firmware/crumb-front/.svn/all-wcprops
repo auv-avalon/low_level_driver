@@ -1,0 +1,131 @@
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/Avalon/!svn/ver/3002/Entwicklung/Software/trunk/firmware/crumb-front
+END
+servo.c
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/Avalon/!svn/ver/3000/Entwicklung/Software/trunk/firmware/crumb-front/servo.c
+END
+i2cmaster.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/i2cmaster.h
+END
+flash_remote.sh
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/flash_remote.sh
+END
+interrupt.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/interrupt.h
+END
+depth_sensor.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/depth_sensor.h
+END
+servo.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/servo.h
+END
+crumb_firmware.hex
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/Avalon/!svn/ver/3003/Entwicklung/Software/trunk/firmware/crumb-front/crumb_firmware.hex
+END
+ADS1100.c
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/ADS1100.c
+END
+crumb.aps
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/crumb.aps
+END
+i2cmaster.S
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/i2cmaster.S
+END
+uart.c
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/uart.c
+END
+ADS1100.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/ADS1100.h
+END
+uart.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/uart.h
+END
+crumb.aws
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/crumb.aws
+END
+definitions.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/definitions.h
+END
+lm75.c
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/lm75.c
+END
+lm75.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/Avalon/!svn/ver/2429/Entwicklung/Software/trunk/firmware/crumb-front/lm75.h
+END
+Driver.c
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/Avalon/!svn/ver/3003/Entwicklung/Software/trunk/firmware/crumb-front/Driver.c
+END
+interrupt.c
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/Avalon/!svn/ver/2999/Entwicklung/Software/trunk/firmware/crumb-front/interrupt.c
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/Avalon/!svn/ver/3000/Entwicklung/Software/trunk/firmware/crumb-front/Makefile
+END
+depth_sensor.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/Avalon/!svn/ver/2746/Entwicklung/Software/trunk/firmware/crumb-front/depth_sensor.c
+END
