@@ -26,7 +26,7 @@ volatile uint16_t	timer0counter;
 volatile uint16_t	frameCounter;
 volatile uint16_t	shortExposure=15000;
 volatile uint16_t	longExposure=23000; //26000
-volatile uint32_t       waitUntilNextCycle;
+volatile uint32_t       waitUntilNextFrame;
 volatile uint8_t        maxFramesPerSecond = 10;
 volatile uint8_t        framesPerSecond;
 volatile uint8_t	stopping=0;
@@ -65,11 +65,11 @@ void disableTriggerTimer() {
 void initTimer() {
 	uint32_t clockTicks = 16000000/64; // 16MHz and CK/64
         uint32_t minClockTicksPerCycle = 2*shortExposure + longExposure + 3*MINWAITTIME + 3;
-        frames = clockTicks/minClockTicksPerCycle;
-        if(frames > maxFrames)
-                frames = maxFrames;
-        uint32_t clockTicksPerCycle = clockTicks/frames;
-        waitUntilNextCycle = clockTicksPerCycle-minClockTicksPerCycle;
+        framesPerSecond = clockTicks/minClockTicksPerCycle;
+        if(framesPerSecond > maxFramesPerSecond)
+                framesPerSecond = maxFramesPerSecond;
+        uint32_t clockTicksPerCycle = clockTicks/framesPerSecond;
+        waitUntilNextFrame = clockTicksPerCycle-minClockTicksPerCycle;
 
 	//WDTCR|=	_BV(WDP2) | _BV(WDP1) | _BV(WDE);
 	
