@@ -27,7 +27,7 @@ volatile uint16_t	frameCounter;
 volatile uint16_t	shortExposure=15000;
 volatile uint16_t	longExposure=23000; //26000
 volatile uint32_t       waitUntilNextFrame;
-volatile uint8_t        maxFramesPerSecond = 10;
+volatile uint8_t        maxFramesPerSecond = 2;
 volatile uint8_t        framesPerSecond;
 volatile uint8_t	stopping=0;
 volatile uint8_t 	ignore_laser_depth=0;
