@@ -26,9 +26,6 @@ volatile uint16_t	timer0counter;
 volatile uint16_t	frameCounter;
 volatile uint16_t	shortExposure=15000;
 volatile uint16_t	longExposure=23000; //26000
-volatile uint32_t       waitUntilNextFrame;
-volatile uint8_t        maxFramesPerSecond = 2;
-volatile uint8_t        framesPerSecond;
 volatile uint8_t	stopping=0;
 volatile uint8_t 	ignore_laser_depth=0;
 //volatile uint16_t	skipper=0;
@@ -40,15 +37,15 @@ void enableTriggerTimer() {
 	triggerEnabled=1;
 	ledState &= ~_BV(6);	
 	TCNT1 		= 0;
-	frameCounter= 0;// TODO doppelt
-	OCR1A		= 1; // TODO doppelt
+	frameCounter= 0;
+	OCR1A		= 1; 
 	//OCR1B		= shortExposure;
 	//ICR1		= shortExposure + MINWAITTONEXTFRAME;
 	TIFR		&= ~(_BV(OCF1A) | _BV(OCF1B));
 	ETIFR		|= _BV(OCF1C);
 	//TCCR1B		= _BV(CS11) |_BV(CS10) | _BV(WGM13) | _BV(WGM12);
 	//TIMSK &= ~_BV(TICIE1);	
-	TCNT1 		= 0; // TODO doppelt
+	TCNT1 		= 0;
 	TIMSK		|=  _BV(OCIE1A) | _BV(OCIE1B);	//Intrrupt on Compare Match
 	ETIMSK		|= _BV(OCIE1C);
 	
@@ -63,21 +60,13 @@ void disableTriggerTimer() {
 }
 
 void initTimer() {
-	uint32_t clockTicks = 16000000/64; // 16MHz and CK/64
-        uint32_t minClockTicksPerCycle = 2*shortExposure + longExposure + 3*MINWAITTIME;
-        framesPerSecond = clockTicks/minClockTicksPerCycle;
-        if(framesPerSecond > maxFramesPerSecond)
-                framesPerSecond = maxFramesPerSecond;
-        uint32_t clockTicksPerCycle = clockTicks/framesPerSecond;
-        waitUntilNextFrame = clockTicksPerCycle-minClockTicksPerCycle;
-
 	//WDTCR|=	_BV(WDP2) | _BV(WDP1) | _BV(WDE);
 	
 	//wdt_enable(WDTO_2S);
 
 	
 	//_BV(PORTB6);
-	PORTB&= ~_BV(PORTB5); // TODO doppelt
+	PORTB&= ~_BV(PORTB5);
 	TCNT1 		= 0;
 	
 	TCCR1A		= 0;//_BV(COM1A1) | _BV(COM1A0);
@@ -96,7 +85,7 @@ void initTimer() {
 	OCR1C		=	MINWAITTIME-500;	            //CAM2
 	//DDRA |= 1;
 	//PORTA &= ~1;
-	frameCounter=0; // TODO doppelt
+	frameCounter=0;
 	TCCR1B		= _BV(CS11) |_BV(CS10) | _BV(WGM13) | _BV(WGM12);
 	enableTriggerTimer();
 	DDRB |= _BV(PORTB5) | _BV(PORTB6) | _BV(PORTB7);
@@ -126,7 +115,7 @@ ISR(TIMER1_COMPA_vect) {
 	
 	if(frameCounter==3){
 		OCR1B = longExposure;
-		ICR1 = longExposure + MINWAITTIME + waitUntilNextFrame;
+		ICR1 = longExposure + MINWAITTIME;
 	}else{
 		OCR1B = shortExposure;
 		//if(shortExposure+MINWAITTIME < MINWAITBETWEENSTARTS)
