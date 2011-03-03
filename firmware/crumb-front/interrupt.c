@@ -13,6 +13,8 @@
 #define MINWAITBETWEENSTARTS	(0) //TODO mal richtigen wert rausfinden und nicht einfch abfangen	
 #define MINWAITTIME		3000
 #define MIN_DEPTH_FOR_LASER (-0.5/-0.00228881835938)
+#define CLOCK_SPEED		16000000 // 16 MHz
+#define PRESCALER               256 // [1,8,64,256,1024]
 
 volatile uint16_t	adcDirect[8];
 volatile uint8_t	emergency;
@@ -27,8 +29,8 @@ volatile uint16_t	frameCounter;
 volatile uint16_t	shortExposure=15000;
 volatile uint16_t	longExposure=23000; //26000
 volatile uint32_t       waitUntilNextFrame;
-volatile uint8_t        maxFramesPerSecond = 2;
-volatile uint8_t        framesPerSecond;
+volatile float	        maxFramesetsPerSecond = 5;
+volatile float	        framesetsPerSecond;
 volatile uint8_t	stopping=0;
 volatile uint8_t 	ignore_laser_depth=0;
 //volatile uint16_t	skipper=0;
@@ -63,13 +65,12 @@ void disableTriggerTimer() {
 }
 
 void initTimer() {
-	uint32_t clockTicks = 16000000/64; // 16MHz and CK/64
-        uint32_t minClockTicksPerCycle = 2*shortExposure + longExposure + 3*MINWAITTIME;
-        framesPerSecond = clockTicks/minClockTicksPerCycle;
-        if(framesPerSecond > maxFramesPerSecond)
-                framesPerSecond = maxFramesPerSecond;
-        uint32_t clockTicksPerCycle = clockTicks/framesPerSecond;
-        waitUntilNextFrame = clockTicksPerCycle-minClockTicksPerCycle;
+	uint32_t clockTicks = CLOCK_SPEED/PRESCALER;
+	uint32_t clockTicks3Frames = 2*shortExposure + longExposure + 3*MINWAITTIME;
+        framesetsPerSecond = clockTicks/clockTicks3Frames;
+        if(framesetsPerSecond > maxFramesetsPerSecond)
+                framesetsPerSecond = maxFramesetsPerSecond;
+        waitUntilNextFrame = clockTicks/framesetsPerSecond-clockTicks3Frames;
 
 	//WDTCR|=	_BV(WDP2) | _BV(WDP1) | _BV(WDE);
 	
@@ -97,7 +98,16 @@ void initTimer() {
 	//DDRA |= 1;
 	//PORTA &= ~1;
 	frameCounter=0; // TODO doppelt
-	TCCR1B		= _BV(CS11) |_BV(CS10) | _BV(WGM13) | _BV(WGM12);
+	if(PRESCALER==1)
+		TCCR1B          = _BV(CS10) | _BV(WGM13) | _BV(WGM12);
+	else if(PRESCALER==8)
+		TCCR1B          = _BV(CS11) | _BV(WGM13) | _BV(WGM12);
+	else if(PRESCALER==64)
+		TCCR1B          = _BV(CS11) |_BV(CS10) | _BV(WGM13) | _BV(WGM12);
+	else if(PRESCALER==256)
+		TCCR1B          = _BV(CS12) | _BV(WGM13) | _BV(WGM12);
+	else if(PRESCALER==1024)
+		TCCR1B		= _BV(CS12) |_BV(CS10) | _BV(WGM13) | _BV(WGM12);
 	enableTriggerTimer();
 	DDRB |= _BV(PORTB5) | _BV(PORTB6) | _BV(PORTB7);
 	PORTB&= ~_BV(PORTB6);
@@ -156,7 +166,7 @@ ISR(TIMER1_COMPB_vect) {
 				ledState &= ~_BV(5);	
 				//char buff[500];
 				//avalonSendMessage(1,snprintf(buff,500,"Curr Depth: %i < %i (offset: %i)\n",get_current_depth(),MIN_DEPTH_FOR_LASER,calibration_value,buff));
-				}
+			}
 		}
 		frameCounter=0;
 	}
