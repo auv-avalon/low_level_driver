@@ -14,8 +14,16 @@
 #define MINWAITTIME		3000
 #define MIN_DEPTH_FOR_LASER (-0.5/-0.00228881835938)
 #define CLOCK_SPEED		16000000 // 16 MHz
-#define PRESCALER               256 // [1,8,64,256,1024]
+#define PRESCALER               256
+#define STATE_SHORT1		1
+#define STATE_SHORT2		2
+#define STATE_LONG		3
+#define STATE_WAIT		4
+#define MAX_TIMER_VALUE		65535
 
+volatile uint8_t	state;
+volatile uint8_t	iteration=0;
+volatile uint8_t	iterationTarget=1;
 volatile uint16_t	adcDirect[8];
 volatile uint8_t	emergency;
 volatile uint16_t	ads1112Front[3];
@@ -28,6 +36,12 @@ volatile uint16_t	timer0counter;
 volatile uint16_t	frameCounter;
 volatile uint16_t	shortExposure=15000;
 volatile uint16_t	longExposure=23000; //26000
+volatile uint32_t	shortExposureTacts;
+volatile uint32_t	longExposureTacts;
+volatile uint16_t	longExposureOF;
+volatile uint16_t	longExposureOF_TimerEnd;
+uint32_t 		clockTactsPerSecond;
+uint32_t 		clockTacts3Frames;
 volatile uint32_t       waitUntilNextFrame;
 volatile float	        maxFramesetsPerSecond = 5;
 volatile float	        framesetsPerSecond;
@@ -39,6 +53,7 @@ extern volatile unsigned char ledState;
 extern volatile unsigned char laserEnabled=1;
 
 void enableTriggerTimer() {
+	state=STATE_SHORT1;
 	triggerEnabled=1;
 	ledState &= ~_BV(6);	
 	TCNT1 		= 0;
@@ -65,12 +80,15 @@ void disableTriggerTimer() {
 }
 
 void initTimer() {
-	uint32_t clockTicks = CLOCK_SPEED/PRESCALER;
-	uint32_t clockTicks3Frames = 2*shortExposure + longExposure + 3*MINWAITTIME;
-        framesetsPerSecond = clockTicks/clockTicks3Frames;
+	clockTactsPerSecond = CLOCK_SPEED/PRESCALER;
+	clockTacts3Frames = 2*shortExposure + longExposure + 3*MINWAITTIME;
+        framesetsPerSecond = clockTactsPerSecond/clockTacts3Frames;
         if(framesetsPerSecond > maxFramesetsPerSecond)
                 framesetsPerSecond = maxFramesetsPerSecond;
-        waitUntilNextFrame = clockTicks/framesetsPerSecond-clockTicks3Frames;
+        waitUntilNextFrame = clockTactsPerSecond/framesetsPerSecond-clockTicks3Frames;
+
+	shortExposureTacts = shortExposure/1000000*clockTactsPerSecond;
+	longExposureTacts = longExposure/1000000*clockTactsPerSecond;
 
 	//WDTCR|=	_BV(WDP2) | _BV(WDP1) | _BV(WDE);
 	
@@ -98,16 +116,7 @@ void initTimer() {
 	//DDRA |= 1;
 	//PORTA &= ~1;
 	frameCounter=0; // TODO doppelt
-	if(PRESCALER==1)
-		TCCR1B          = _BV(CS10) | _BV(WGM13) | _BV(WGM12);
-	else if(PRESCALER==8)
-		TCCR1B          = _BV(CS11) | _BV(WGM13) | _BV(WGM12);
-	else if(PRESCALER==64)
-		TCCR1B          = _BV(CS11) |_BV(CS10) | _BV(WGM13) | _BV(WGM12);
-	else if(PRESCALER==256)
-		TCCR1B          = _BV(CS12) | _BV(WGM13) | _BV(WGM12);
-	else if(PRESCALER==1024)
-		TCCR1B		= _BV(CS12) |_BV(CS10) | _BV(WGM13) | _BV(WGM12);
+	TCCR1B          = _BV(CS12) | _BV(WGM13) | _BV(WGM12); // CK/256
 	enableTriggerTimer();
 	DDRB |= _BV(PORTB5) | _BV(PORTB6) | _BV(PORTB7);
 	PORTB&= ~_BV(PORTB6);
@@ -123,6 +132,52 @@ void keepAlive() {
 static volatile uint16_t laser_counter = 0;
 
 ISR(TIMER1_COMPA_vect) {
+	switch(state) {
+		case STATE_SHORT1:
+		case STATE_SHORT2:
+		{
+			PORTB |= _BV(PORTB6); // cam on
+			iteration = 0; // reset
+			OCR1B = shortExposure;
+			ICR1 = shortExposure + MINWAITTIME;
+			break;
+		}
+		case STATE_LONG:
+		{
+			++iteration;
+			if(iteration==1) {
+				PORTB |= _BV(PORTB6); // cam on
+	
+        			if(longExposure > MAX_TIMER_VALUE) { // overflow
+                			iterationTarget = longExposure/MAX_TIMER_VALUE;
+		        	        longExposureOF = longExposure % MAX_TIMER_VALUE;
+        		        	if(longExposureOF)
+	                		        ++iterationTarget;
+					OCR1B = longExposureOF;
+					ICR1 = MAX_TIMER_VALUE;
+			        } else {
+					OCR1B = longExposure;
+					ICR1 = longExposure + MINWAITTIME;
+				}
+			} else if(iteration==iterationTarget) {
+				if(longExposureOF + MINWAITTIME > MAX_TIMER_VALUE)
+                                        longExposureOF_TimerEnd = (longExposureOF + MINWAITTIME) % MAX_TIMER_VALUE;
+                                else
+                                        ICR1 = longExposureOF + MINWAITTIME;
+			} else if(iteration>iterationTarget) {
+				ICR1 = longExposureOF_TimerEnd;
+			}
+			break;
+		}
+		case STATE_WAIT:
+		{
+			iteration = 0; // reset
+			ICR1 = waitUntilNextFrame;
+			if(ICR1<OCR1B)
+				state = STATE_SHORT1;
+			break;
+		}
+	}
 	//wdt_reset();	
 
 //	frameCounter++;
@@ -130,7 +185,7 @@ ISR(TIMER1_COMPA_vect) {
 //	if(skipper){
 //		return;
 //	}
-	frameCounter++;
+/*	frameCounter++;
 	PORTB |= _BV(PORTB6);
 
 	
@@ -144,10 +199,50 @@ ISR(TIMER1_COMPA_vect) {
 		//else
 		ICR1 = shortExposure + MINWAITTIME;	// TODO: Das ist == MINWAITTONEXTFRAME, das kann nicht stimmen, oder?
 		//ICR1 = shortExposure + MINWAITTONEXTFRAME;
-	}
+	}*/
 }
 
 ISR(TIMER1_COMPB_vect) {
+	PORTB&= ~_BV(PORTB5); // laser off
+	switch(state) {
+                case STATE_SHORT1:
+		{
+			PORTB&= ~_BV(PORTB6); // cam off
+			PORTB |= _BV(PORTB5); // laser on
+			state = STATE_SHORT2;
+			break;
+		}
+                case STATE_SHORT2:
+                {
+			PORTB&= ~_BV(PORTB6); // cam off
+			state = STATE_LONG;
+                        break;
+                }
+                case STATE_LONG:
+                {
+                        if(iteration==iterationTarget) {
+                                PORTB&= ~_BV(PORTB6); // cam off
+				if(stopping) {
+		                        TIMSK           &=  ~(_BV(OCIE1A));
+                		        TIMSK           &=  ~(_BV(OCIE1B));
+		                        PORTB &= ~(_BV(PORTB5) | _BV(PORTB6));
+                		        stopping=0;
+		                } else {
+					if(waitUntilNextTime>0)
+						state = STATE_WAIT;
+					else
+						state = STATE_SHORT1;
+				}
+			}
+                        break;
+                }
+		case STATE_WAIT:
+		{
+			state = STATE_SHORT1;
+			break;
+		}
+        }
+/*
 	PORTB&= ~_BV(PORTB6);
 	PORTB&= ~_BV(PORTB5);
 	if(frameCounter==3){
@@ -169,7 +264,7 @@ ISR(TIMER1_COMPB_vect) {
 			}
 		}
 		frameCounter=0;
-	}
+	}*/
 }
 
 ISR(TIMER1_COMPC_vect) {
