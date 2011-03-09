@@ -21,5 +21,6 @@ ISR(ADC_vect);
 ISR(TIMER1_COMPA_vect);
 ISR(TIMER3_COMPA_vect);
 void initServoTimer();
+void calcTacts();
 
 #endif
