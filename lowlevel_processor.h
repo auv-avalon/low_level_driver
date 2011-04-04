@@ -31,6 +31,7 @@ public:
 	  LaserOverride,
 	  SetLongExposure,
 	  SetShortExposure,
+	  SetWaitingTime,
 	  SetServoValue,
 	  Reset,
 	  CalibrateDepth
@@ -46,7 +47,8 @@ public:
 	void reset();
 	void calibrateDepth();
 	void setShortExposure(uint16_t value);
-	void setLongExposure(uint16_t value);
+	void setLongExposure(uint32_t value);
+	void setWaitingTime(uint32_t value);
 	void setServoValue(uint16_t value);
 
 	double depthValue;
@@ -56,10 +58,12 @@ public:
 	static const int MAX_PACKET_SIZE = 256;
 	virtual int extractPacket(uint8_t const* buffer, size_t buffer_size) const;
 	uint16_t targetShortExposure;
-	uint16_t targetLongExposure;
+	uint32_t targetLongExposure;
+	uint32_t targetWaitingTime;
 	uint16_t targetServoValue;
 	uint16_t crumbShortExposure;
-	uint16_t crumbLongExposure;
+	uint32_t crumbLongExposure;
+	uint32_t crumbWaitingTime;
 	uint16_t crumbServoValue;
 #if 0
 	FILE *cpuTempFile;
