@@ -37,6 +37,8 @@ LowLevelProcessor::LowLevelProcessor():
   crumbLongExposure = 0;
   targetShortExposure =0;
   crumbShortExposure = 0;
+  targetWaitingTime = 0;
+  crumbWaitingTime = 0;
 
 
 }
@@ -104,27 +106,32 @@ void LowLevelProcessor::setLEDs(const uint8_t& value)
 }
 
 
-void LowLevelProcessor::setLongExposure(uint16_t value)
+void LowLevelProcessor::setLongExposure(uint32_t value)
 {
-  if(value > 61000){
-  	fprintf(stderr,"Canno set values larger than 61000 otherwise low level elctronic crash, check this please\n");
+  if(value > 2000000){
+  	fprintf(stderr,"Max value for Long Exposure is 2000000 (microseconds)\n");
 	return;
   }
-  static const int len=6;
+
+  static const int len=8;
   uint8_t buff[len];
   buff[0]='#';
   buff[1]=len;
   buff[2]=SetLongExposure;
-  memcpy(&buff[3],&value,2);
-  buff[5]='\n';
-  writePacket(buff,len,200);
+  memcpy(&buff[3],&value,4);
+  buff[7]='\n';
+  writePacket(buff,len,500);
   targetLongExposure = value;
 }
 
 void LowLevelProcessor::setShortExposure(uint16_t value)
 {
-  if(value < 250){
-  	printf("Short Exposure is Below 250 not allowed!\n");
+  if(value > 65535){
+  	printf("Max value for Short Exposure is 65535 (microseconds)\n");
+	return;
+  }
+  if(value < 50){
+  	printf("Min value for Short Exposure is 50 (microseconds)\n");
 	return;
   }
   static const int len=6;
@@ -138,6 +145,23 @@ void LowLevelProcessor::setShortExposure(uint16_t value)
   //printf("\n");
   writePacket(buff,len,500);
   targetShortExposure = value;
+}
+
+void LowLevelProcessor::setWaitingTime(uint32_t value)
+{
+  if(value > 1000000){
+          printf("Max value for Waiting Time is 1000000\n");
+          return;
+  }
+  static const int len=8;
+  uint8_t buff[len];
+  buff[0]='#';
+  buff[1]=len;
+  buff[2]=SetWaitingTime;
+  memcpy(&buff[3],&value,4);
+  buff[7]='\n';
+  writePacket(buff,len,500);
+  targetWaitingTime = value;
 }
 
 void LowLevelProcessor::setServoValue(uint16_t value)
@@ -182,7 +206,7 @@ bool LowLevelProcessor::getData(bool reRequest){
       }
       case SetLongExposure:
       {
-        crumbLongExposure= (packed[3] | packed[4] << 8);
+        crumbLongExposure= (packed[3] | packed[4] << 8 | packed[5] << 16 | packed[6] << 24);
 	printf("got Long value %i\n",crumbLongExposure);
         break;
       }
@@ -191,6 +215,12 @@ bool LowLevelProcessor::getData(bool reRequest){
         crumbShortExposure= (packed[3] | packed[4] << 8);
 	printf("got short value %i\n",crumbShortExposure);
         break;
+      }
+      case SetWaitingTime:
+      {
+      	crumbWaitingTime = (packed[3] | packed[4] << 8 | packed[5] << 16 | packed[6] << 24);
+	printf("got waiting time %i\n",crumbWaitingTime);
+	break;
       }
       case SetServoValue:
       {
@@ -226,6 +256,10 @@ bool LowLevelProcessor::getData(bool reRequest){
 	  if(targetLongExposure != crumbLongExposure){
 		setLongExposure(targetLongExposure);
 		printf("Long Exposure dosnt fit, re-requesting (should be %i, is %i\n)\n",targetLongExposure,crumbLongExposure);
+	  }
+	  if(targetWaitingTime != crumbWaitingTime){
+	  	setWaitingTime(targetWaitingTime);
+		printf("Waiting time doesnt fit, re-requesting (should be %i, is %i\n)\n",targetWaitingTime,crumbWaitingTime);
 	  }
 	  if(targetShortExposure != crumbShortExposure){
 		setShortExposure(targetShortExposure);

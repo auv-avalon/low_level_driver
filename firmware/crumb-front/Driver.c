@@ -25,6 +25,7 @@ enum MessageType{
 	  LaserOverride,
 	  SetLongExposure,
 	  SetShortExposure,
+	  SetWaitingTime,
 	  SetServoValue,
 	  Reset,
 	  CalibrateDepth
@@ -41,7 +42,8 @@ char buff[200];
 extern volatile uint8_t ignore_laser_depth;
 volatile unsigned char ledState=0;
 extern volatile uint16_t shortExposure;
-extern volatile uint16_t longExposure;
+extern volatile uint32_t longExposure;
+extern volatile uint32_t waitingTime;
 extern volatile int32_t calibration_value; //Depth offset
 
 
@@ -130,23 +132,33 @@ void processMessage(uint8_t *buffer){
     }
     case SetLongExposure:
     {
-      uint16_t oldExposure = longExposure;
-      longExposure = buffer[3] | (buffer[4]<<8);
-      if(shortExposure > longExposure){
-      	longExposure = oldExposure;
-	sprintf(buff,"Long Exposure, skipping");
-	sendString(buff);
+      uint32_t oldExposure = longExposure;
+      longExposure = buffer[6];
+      longExposure <<= 8;
+      longExposure |= buffer[5];
+      longExposure <<= 8;
+      longExposure |= buffer[4];
+      longExposure <<= 8;
+      longExposure |= buffer[3];
+      //longExposure = (buffer[3] | (buffer[4]<<8) | (buffer[5]<<16) | (buffer[6]<<24));
       
-      uint8_t buf[6];
+      if(shortExposure > longExposure){
+	sprintf(buff,"Long Exposure below Short Exposure, skipping %u %lu", shortExposure, longExposure);
+	sendString(buff);
+	longExposure = oldExposure;
+      }
+      
+      uint8_t buf[8];
       buf[0] = '#';
-      buf[1] = 6;
+      buf[1] = 8;
       buf[2] = SetLongExposure;
       buf[3] = buffer[3];
       buf[4] = buffer[4];
-      buf[5] = '\n';
-      uart_send(buf,6);
+      buf[5] = buffer[5];
+      buf[6] = buffer[6];
+      buf[7] = '\n';
+      uart_send(buf,8);
 
-      }
       break;
     }
     case SetShortExposure:
@@ -158,10 +170,9 @@ void processMessage(uint8_t *buffer){
 	      sendString(buff);
       }
       if(shortExposure > longExposure){
-      	shortExposure = oldExposure;
-	sprintf(buff,"Short Exposure below Long Exposure, skipping");
+	sprintf(buff,"Short Exposure above Long Exposure, skipping %u %lu", shortExposure, longExposure);
 	sendString(buff);
-
+	shortExposure = oldExposure;
       }
       uint8_t buf[6];
       buf[0] = '#';
@@ -172,6 +183,28 @@ void processMessage(uint8_t *buffer){
       buf[5] = '\n';
       uart_send(buf,6);
 
+      break;
+    }
+    case SetWaitingTime:
+    {
+      waitingTime = buffer[6];
+      waitingTime <<= 8;
+      waitingTime |= buffer[5];
+      waitingTime <<= 8;
+      waitingTime |= buffer[4];
+      waitingTime <<= 8;
+      waitingTime |= buffer[3];
+
+      uint8_t buf[8];
+      buf[0] = '#';
+      buf[1] = 8;
+      buf[2] = SetWaitingTime;
+      buf[3] = buffer[3];
+      buf[4] = buffer[4];
+      buf[5] = buffer[5];
+      buf[6] = buffer[6];
+      buf[7] = '\n';
+      uart_send(buf,8);
       break;
     }
     case SetServoValue:
@@ -299,7 +332,7 @@ int main(void){
 	DDRF=255;
 	PORTF = 255;
       for(int i=0;i<FIFOSIZE;i++)
-	 buffer[i]=1;
+	 buffer[i]=0;
 	//PORTB = 255;
 
 	//avalonInit(avalon_callbacks, sizeof(avalon_callbacks)/sizeof(ReceiveCallback*));

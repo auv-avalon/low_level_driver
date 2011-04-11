@@ -11,7 +11,7 @@
 #define LASER_PIN			(_BV(5) | _BV(7))
 //#define MINWAITBETWEENSTARTS	(12000)	
 #define MINWAITBETWEENSTARTS	(0) //TODO mal richtigen wert rausfinden und nicht einfch abfangen	
-#define MINWAITTIME		3000
+#define MINWAITTIME		750//3000
 #define MIN_DEPTH_FOR_LASER (-0.5/-0.00228881835938)
 #define CLOCK_SPEED		16000000 // 16 MHz
 #define PRESCALER               256
@@ -19,6 +19,7 @@
 #define STATE_SHORT2		2
 #define STATE_LONG		3
 #define STATE_WAIT		4
+#define STATE_SAFETY		5
 #define MAX_TIMER_VALUE		65535
 
 volatile uint8_t	state;
@@ -34,17 +35,18 @@ volatile int		ads1112cnt=0;
 volatile int		currendADCPort=0;
 volatile uint16_t	timer0counter;
 volatile uint16_t	frameCounter;
-volatile uint16_t	shortExposure=15000;
-volatile uint16_t	longExposure=23000; //26000
+volatile uint16_t	shortExposure=65000; // microseconds
+volatile uint32_t	longExposure=1000000; // microseconds
+volatile uint16_t	oldShortExposure;
+volatile uint32_t	oldLongExposure;
 volatile uint32_t	shortExposureTacts;
 volatile uint32_t	longExposureTacts;
 volatile uint16_t	longExposureOF;
 volatile uint16_t	longExposureOF_TimerEnd;
 uint32_t 		clockTactsPerSecond;
-uint32_t 		clockTacts3Frames;
-volatile uint32_t       waitUntilNextFrame;
-volatile float	        maxFramesetsPerSecond = 5;
-volatile float	        framesetsPerSecond;
+volatile uint32_t       waitingTime = 0; // microseconds
+volatile uint32_t	oldWaitingTime;
+volatile uint32_t	waitingTimeTacts;
 volatile uint8_t	stopping=0;
 volatile uint8_t 	ignore_laser_depth=0;
 //volatile uint16_t	skipper=0;
@@ -56,16 +58,16 @@ void enableTriggerTimer() {
 	state=STATE_SHORT1;
 	triggerEnabled=1;
 	ledState &= ~_BV(6);	
-	TCNT1 		= 0;
-	frameCounter= 0;// TODO doppelt
-	OCR1A		= 1; // TODO doppelt
+	//TCNT1 		= 0;
+	//frameCounter= 0;
+	//OCR1A		= 1;
 	//OCR1B		= shortExposure;
 	//ICR1		= shortExposure + MINWAITTONEXTFRAME;
 	TIFR		&= ~(_BV(OCF1A) | _BV(OCF1B));
 	ETIFR		|= _BV(OCF1C);
 	//TCCR1B		= _BV(CS11) |_BV(CS10) | _BV(WGM13) | _BV(WGM12);
 	//TIMSK &= ~_BV(TICIE1);	
-	TCNT1 		= 0; // TODO doppelt
+	//TCNT1 		= 0;
 	TIMSK		|=  _BV(OCIE1A) | _BV(OCIE1B);	//Intrrupt on Compare Match
 	ETIMSK		|= _BV(OCIE1C);
 	
@@ -79,16 +81,20 @@ void disableTriggerTimer() {
 	stopping=1;
 }
 
-void initTimer() {
-	clockTactsPerSecond = CLOCK_SPEED/PRESCALER;
-	clockTacts3Frames = 2*shortExposure + longExposure + 3*MINWAITTIME;
-        framesetsPerSecond = clockTactsPerSecond/clockTacts3Frames;
-        if(framesetsPerSecond > maxFramesetsPerSecond)
-                framesetsPerSecond = maxFramesetsPerSecond;
-        waitUntilNextFrame = clockTactsPerSecond/framesetsPerSecond-clockTicks3Frames;
+void calcTacts() {
+	oldShortExposure = shortExposure;
+        oldLongExposure = longExposure;
+	oldWaitingTime = waitingTime;
 
-	shortExposureTacts = shortExposure/1000000*clockTactsPerSecond;
-	longExposureTacts = longExposure/1000000*clockTactsPerSecond;
+	clockTactsPerSecond = (uint32_t)CLOCK_SPEED/PRESCALER;
+
+	shortExposureTacts = (uint32_t)round((float)shortExposure/1000000*clockTactsPerSecond);
+	longExposureTacts = (uint32_t)round((float)longExposure/1000000*clockTactsPerSecond);
+	waitingTimeTacts = (uint32_t)round((float)waitingTime/1000000*clockTactsPerSecond);
+}
+
+void initTimer() {
+	calcTacts();
 
 	//WDTCR|=	_BV(WDP2) | _BV(WDP1) | _BV(WDE);
 	
@@ -96,7 +102,7 @@ void initTimer() {
 
 	
 	//_BV(PORTB6);
-	PORTB&= ~_BV(PORTB5); // TODO doppelt
+	//PORTB&= ~_BV(PORTB5);
 	TCNT1 		= 0;
 	
 	TCCR1A		= 0;//_BV(COM1A1) | _BV(COM1A0);
@@ -111,11 +117,11 @@ void initTimer() {
 	//#define CAMTIME (3000*8)
 	ICR1		=	1000; //Any Value don't matterMINWAITBETWEENSTARTS;   //
 	OCR1A		=	1; //CAMTIME/2;	    //Laser ein
-	OCR1B		=	longExposure;//((CAMTIME/4))-5000;  //CAM1	
+	OCR1B		=	longExposureTacts;//((CAMTIME/4))-5000;  //CAM1	
 	OCR1C		=	MINWAITTIME-500;	            //CAM2
 	//DDRA |= 1;
 	//PORTA &= ~1;
-	frameCounter=0; // TODO doppelt
+	//frameCounter=0;
 	TCCR1B          = _BV(CS12) | _BV(WGM13) | _BV(WGM12); // CK/256
 	enableTriggerTimer();
 	DDRB |= _BV(PORTB5) | _BV(PORTB6) | _BV(PORTB7);
@@ -134,30 +140,49 @@ static volatile uint16_t laser_counter = 0;
 ISR(TIMER1_COMPA_vect) {
 	switch(state) {
 		case STATE_SHORT1:
+		{
+			if(PORTB == _BV(PORTB5)) { // if laser on
+	                        state = STATE_SAFETY;
+                                break;
+                        }
+			PORTB |= _BV(PORTB6); // cam on
+                        iteration = 0; // reset
+			if((shortExposure != oldShortExposure) ||
+				(longExposure != oldLongExposure) ||
+				(waitingTime != oldWaitingTime)) // new exposure time
+				calcTacts();
+                        OCR1B = shortExposureTacts;
+                        ICR1 = shortExposureTacts + MINWAITTIME;
+                        break;
+		}
 		case STATE_SHORT2:
 		{
 			PORTB |= _BV(PORTB6); // cam on
-			iteration = 0; // reset
-			OCR1B = shortExposure;
-			ICR1 = shortExposure + MINWAITTIME;
+			OCR1B = shortExposureTacts;
+			ICR1 = shortExposureTacts + MINWAITTIME;
 			break;
 		}
 		case STATE_LONG:
 		{
+			if(PORTB == _BV(PORTB5)) { // if laser on
+                                state = STATE_SAFETY;
+                                break;
+                        }
 			++iteration;
 			if(iteration==1) {
 				PORTB |= _BV(PORTB6); // cam on
 	
-        			if(longExposure > MAX_TIMER_VALUE) { // overflow
-                			iterationTarget = longExposure/MAX_TIMER_VALUE;
-		        	        longExposureOF = longExposure % MAX_TIMER_VALUE;
+        			if(longExposureTacts > MAX_TIMER_VALUE) { // overflow
+                			iterationTarget = longExposureTacts/MAX_TIMER_VALUE;
+		        	        longExposureOF = longExposureTacts % MAX_TIMER_VALUE;
         		        	if(longExposureOF)
 	                		        ++iterationTarget;
 					OCR1B = longExposureOF;
 					ICR1 = MAX_TIMER_VALUE;
 			        } else {
-					OCR1B = longExposure;
-					ICR1 = longExposure + MINWAITTIME;
+					iterationTarget = 1;
+					OCR1B = longExposureTacts;
+					ICR1 = longExposureTacts + MINWAITTIME;
 				}
 			} else if(iteration==iterationTarget) {
 				if(longExposureOF + MINWAITTIME > MAX_TIMER_VALUE)
@@ -171,11 +196,20 @@ ISR(TIMER1_COMPA_vect) {
 		}
 		case STATE_WAIT:
 		{
+			if(PORTB == _BV(PORTB5)) { // if laser on
+                                state = STATE_SAFETY;
+                                break;
+                        }
 			iteration = 0; // reset
-			ICR1 = waitUntilNextFrame;
+			ICR1 = waitingTimeTacts;
 			if(ICR1<OCR1B)
 				state = STATE_SHORT1;
 			break;
+		}
+		case STATE_SAFETY:
+		{
+			PORTB&= ~_BV(PORTB5); // laser off
+			PORTB&= ~_BV(PORTB6); // cam off
 		}
 	}
 	//wdt_reset();	
@@ -228,7 +262,7 @@ ISR(TIMER1_COMPB_vect) {
 		                        PORTB &= ~(_BV(PORTB5) | _BV(PORTB6));
                 		        stopping=0;
 		                } else {
-					if(waitUntilNextTime>0)
+					if(waitingTimeTacts>0)
 						state = STATE_WAIT;
 					else
 						state = STATE_SHORT1;
