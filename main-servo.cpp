@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
 	if (last_depth_time != llpc.depthTime)
 	{
 	  fprintf(stdout,"Depth: %f\r",llpc.depthValue);
+	  fflush(stdout);
 	}
 	//llpc.setLEDs(leds++);
       }catch(timeout_error t) {

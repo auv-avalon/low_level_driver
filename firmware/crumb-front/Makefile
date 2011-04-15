@@ -59,7 +59,7 @@ flash_via_boot: $(TARGET).hex
 #	avrdude -cavrisp2 -patmega128 -Pusb -Uflash:w:$(TARGET).hex -F
 
 flash: 
-	avrdude -cstk500v2 -patmega128 -P/dev/ttyUSB1 -Uflash:w:$(TARGET).hex -F
+	avrdude -cstk500v2 -patmega128 -P/dev/ttyUSB0 -Uflash:w:$(TARGET).hex -F
 
 avalon-flash:
 	avrdude -cavrisp2 -patmega128 -Pusb -Uflash:w:$(TARGET).hex -F

@@ -37,6 +37,7 @@ void setServo(uint16_t position) {
 		TCCR3B = 0;
 		PORTE = 0;
 	}else{
+		TCNT3   = 	0;
 		TCCR3A	=	SERVO_TIMER_TCCR3A;
 		TCCR3B  =       SERVO_TIMER_TCCR3B;
 		// Neue Servoposition übernehmen
@@ -50,7 +51,7 @@ void initServo() {
 	PORTE 	= 	0;
 	TCCR3C	=	SERVO_TIMER_TCCR3C;
 	ICR3	=	SERVO_50HZ_ICR;
-	OCR3A	=	(SERVO_HIGH-SERVO_LOW)/2;
+	OCR3A	=	0; //Init to 0   //(SERVO_HIGH-SERVO_LOW)/2;
 	ETIMSK	&= 	~(_BV(TICIE3) | _BV(OCIE3A) | _BV(OCIE3B) | _BV(TOIE3));	// Sämtliche Interruptquellen für Timer 1 abschalten
 	ETIMSK	&= 	~(_BV(OCIE3C));
 	TCNT3	= 	0;														// Servo zurücksetzen
