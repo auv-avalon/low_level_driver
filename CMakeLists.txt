@@ -17,9 +17,9 @@ add_executable(lowlevel_reset
 	main-reset.cpp
 )
 
-add_executable(lowlevel_servo
+add_executable(lowlevel_lamps
 	lowlevel_processor.cpp
-	main-servo.cpp
+	main-lamps.cpp
 )
 
 add_executable(lowlevel_test
@@ -35,7 +35,7 @@ TARGET_LINK_LIBRARIES(lowlevelDriver
 	${IO_LIBRARIES}
 )
 
-TARGET_LINK_LIBRARIES(lowlevel_servo
+TARGET_LINK_LIBRARIES(lowlevel_lamps
 	${IO_LIBRARIES}
 )
 
