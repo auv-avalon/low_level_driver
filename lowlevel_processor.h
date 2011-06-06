@@ -46,7 +46,7 @@ public:
 	void setLaserOverride(bool v);
 	void reset();
 	void calibrateDepth();
-	void setShortExposure(uint16_t value);
+	void setShortExposure(uint32_t value);
 	void setLongExposure(uint32_t value);
 	void setWaitingTime(uint32_t value);
 	void setServoValue(uint16_t value);
@@ -57,11 +57,11 @@ public:
   private:
 	static const int MAX_PACKET_SIZE = 256;
 	virtual int extractPacket(uint8_t const* buffer, size_t buffer_size) const;
-	uint16_t targetShortExposure;
+	uint32_t targetShortExposure;
 	uint32_t targetLongExposure;
 	uint32_t targetWaitingTime;
 	uint16_t targetServoValue;
-	uint16_t crumbShortExposure;
+	uint32_t crumbShortExposure;
 	uint32_t crumbLongExposure;
 	uint32_t crumbWaitingTime;
 	uint16_t crumbServoValue;

@@ -124,23 +124,23 @@ void LowLevelProcessor::setLongExposure(uint32_t value)
   targetLongExposure = value;
 }
 
-void LowLevelProcessor::setShortExposure(uint16_t value)
+void LowLevelProcessor::setShortExposure(uint32_t value)
 {
-  if(value > 65535){
-  	printf("Max value for Short Exposure is 65535 (microseconds)\n");
+  if(value > 1000000){
+  	printf("Max value for Short Exposure is 1000000 (microseconds)\n");
 	return;
   }
   if(value < 50){
   	printf("Min value for Short Exposure is 50 (microseconds)\n");
 	return;
   }
-  static const int len=6;
+  static const int len=8;
   uint8_t buff[len];
   buff[0]='#';
   buff[1]=len;
   buff[2]=SetShortExposure;
-  memcpy(&buff[3],&value,2);
-  buff[5]='\n';
+  memcpy(&buff[3],&value,4);
+  buff[7]='\n';
   //for(int i=0;i<len;i++)printf("%i ",buff[i]);
   //printf("\n");
   writePacket(buff,len,500);
@@ -212,7 +212,7 @@ bool LowLevelProcessor::getData(bool reRequest){
       }
       case SetShortExposure:
       {
-        crumbShortExposure= (packed[3] | packed[4] << 8);
+        crumbShortExposure= (packed[3] | packed[4] << 8 | packed[5] << 16 | packed[6] << 24);
 	printf("got short value %i\n",crumbShortExposure);
         break;
       }

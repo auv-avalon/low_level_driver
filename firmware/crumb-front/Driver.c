@@ -41,7 +41,7 @@ char buff[200];
 
 extern volatile uint8_t ignore_laser_depth;
 volatile unsigned char ledState=0;
-extern volatile uint16_t shortExposure;
+extern volatile uint32_t shortExposure;
 extern volatile uint32_t longExposure;
 extern volatile uint32_t waitingTime;
 extern volatile int32_t calibration_value; //Depth offset
@@ -143,7 +143,7 @@ void processMessage(uint8_t *buffer){
       //longExposure = (buffer[3] | (buffer[4]<<8) | (buffer[5]<<16) | (buffer[6]<<24));
       
       if(shortExposure > longExposure){
-	sprintf(buff,"Long Exposure below Short Exposure, skipping %u %lu", shortExposure, longExposure);
+	sprintf(buff,"Long Exposure below Short Exposure, skipping %lu %lu", shortExposure, longExposure);
 	sendString(buff);
 	longExposure = oldExposure;
       }
@@ -163,25 +163,35 @@ void processMessage(uint8_t *buffer){
     }
     case SetShortExposure:
     {
-      uint16_t oldExposure = shortExposure;
-      shortExposure = buffer[3] | (buffer[4]<<8);
+      uint32_t oldExposure = shortExposure;
+      shortExposure = buffer[6];
+      shortExposure <<= 8;
+      shortExposure |= buffer[5];
+      shortExposure <<= 8;
+      shortExposure |= buffer[4];
+      shortExposure <<= 8;
+      shortExposure |= buffer[3];
+      //shortExposure = buffer[3] | (buffer[4]<<8);
+
       if(shortExposure < 280){
-	      sprintf(buff,"Short Exposure below 250 is not allowed, skipping");
+	      sprintf(buff,"Short Exposure below 280 is not allowed, skipping");
 	      sendString(buff);
       }
       if(shortExposure > longExposure){
-	sprintf(buff,"Short Exposure above Long Exposure, skipping %u %lu", shortExposure, longExposure);
+	sprintf(buff,"Short Exposure above Long Exposure, skipping %lu %lu", shortExposure, longExposure);
 	sendString(buff);
 	shortExposure = oldExposure;
       }
-      uint8_t buf[6];
+      uint8_t buf[8];
       buf[0] = '#';
-      buf[1] = 6;
+      buf[1] = 8;
       buf[2] = SetShortExposure;
       buf[3] = buffer[3];
       buf[4] = buffer[4];
-      buf[5] = '\n';
-      uart_send(buf,6);
+      buf[5] = buffer[5];
+      buf[6] = buffer[6];
+      buf[7] = '\n';
+      uart_send(buf,8);
 
       break;
     }
