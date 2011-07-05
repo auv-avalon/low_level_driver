@@ -33,8 +33,8 @@ volatile int		currendADCPort=0;
 volatile uint16_t	timer0counter;
 volatile uint32_t	timer1counter;
 volatile uint16_t	frameCounter;
-volatile uint32_t	shortExposure=50000; // microseconds
-volatile uint32_t	longExposure=500000; // microseconds
+volatile uint32_t	shortExposure=160000;//50000; // microseconds
+volatile uint32_t	longExposure=160000;//500000; // microseconds
 volatile uint32_t	oldShortExposure;
 volatile uint32_t	oldLongExposure;
 volatile uint32_t	shortExposureTacts;
@@ -164,7 +164,7 @@ ISR(TIMER1_COMPA_vect) {
 				state = STATE_SHORT2;
 			} else if(timer1counter*ICR1 >= shortExposureTacts) {
 				PORTB&= ~_BV(PORTB6); // cam off
-        	                PORTB |= _BV(PORTB5); // laser on
+        	                //PORTB |= _BV(PORTB5); // laser on
 			}
                         break;
 		}
