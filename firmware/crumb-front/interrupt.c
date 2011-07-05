@@ -11,7 +11,7 @@
 #define LASER_PIN			(_BV(5) | _BV(7))
 //#define MINWAITBETWEENSTARTS	(12000)	
 #define MINWAITBETWEENSTARTS	(0) //TODO mal richtigen wert rausfinden und nicht einfch abfangen	
-#define MINWAITTIME		589824 // 40ms			147456 // 10ms
+#define MINWAITTIME		10*147456 //10*10ms=100ms          //589824 // 40ms			147456 // 10ms
 #define MIN_DEPTH_FOR_LASER (-0.5/-0.00228881835938)
 #define PRESCALER               1//8//64//256
 #define STATE_SHORT1		1
@@ -33,8 +33,8 @@ volatile int		currendADCPort=0;
 volatile uint16_t	timer0counter;
 volatile uint32_t	timer1counter;
 volatile uint16_t	frameCounter;
-volatile uint32_t	shortExposure=160000;//50000; // microseconds
-volatile uint32_t	longExposure=160000;//500000; // microseconds
+volatile uint32_t	shortExposure=100000;//50000; // microseconds
+volatile uint32_t	longExposure=100000;//500000; // microseconds
 volatile uint32_t	oldShortExposure;
 volatile uint32_t	oldLongExposure;
 volatile uint32_t	shortExposureTacts;
