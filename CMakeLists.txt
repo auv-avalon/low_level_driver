@@ -12,6 +12,11 @@ add_executable(lowlevel_led
 	main-led.cpp
 )
 
+add_executable(lowlevel_laser
+	lowlevel_processor.cpp
+	main-laser.cpp
+)
+
 add_executable(lowlevel_reset
 	lowlevel_processor.cpp
 	main-reset.cpp
@@ -47,6 +52,10 @@ TARGET_LINK_LIBRARIES(lowlevel_reset
 	${IO_LIBRARIES}
 )
 TARGET_LINK_LIBRARIES(lowlevel_led
+	${IO_LIBRARIES}
+)
+
+TARGET_LINK_LIBRARIES(lowlevel_laser
 	${IO_LIBRARIES}
 )
 

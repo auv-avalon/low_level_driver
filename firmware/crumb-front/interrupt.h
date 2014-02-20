@@ -22,5 +22,6 @@ ISR(TIMER1_COMPA_vect);
 ISR(TIMER3_COMPA_vect);
 void initServoTimer();
 void calcTacts();
+void setLaserRate(uint8_t rate);
 
 #endif

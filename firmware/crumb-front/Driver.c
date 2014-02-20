@@ -28,7 +28,8 @@ enum MessageType{
 	  SetWaitingTime,
 	  SetServoValue,
 	  Reset,
-	  CalibrateDepth
+	  CalibrateDepth,
+	  SetLaserRate,
 	};
 
 //#define DEBUG 1
@@ -116,7 +117,7 @@ void set_leds(uint8_t leds) {
 	
 
 void processMessage(uint8_t *buffer){
-  
+  sendString(buffer);
   switch(buffer[2]){
     case SetLEDValue:
     {
@@ -241,7 +242,9 @@ void processMessage(uint8_t *buffer){
     	calibrate_depth_sensor();	
 	break;
     }
-
+    case SetLaserRate:
+	setLaserRate(buffer[3]);
+	break;
     default:{
       char buff[200];
       sprintf(buff,"Cannot Parse message Type %i,%i,%i,%i",buffer[0],buffer[1],buffer[2],buffer[3]);
@@ -354,6 +357,7 @@ int main(void){
 	sendString("Crumb started");
 	
 	for(;;) {
+		//sendString("Test");
 	  	unsigned int byte = uart1_getc();
 		while(byte != UART_NO_DATA){
 		  buffer[writePos] = byte;

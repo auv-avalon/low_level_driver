@@ -34,7 +34,8 @@ public:
 	  SetWaitingTime,
 	  SetServoValue,
 	  Reset,
-	  CalibrateDepth
+	  CalibrateDepth,
+	  SetLaserRate,
 	};
 	
 	LowLevelProcessor();
@@ -50,7 +51,7 @@ public:
 	void setLongExposure(uint32_t value);
 	void setWaitingTime(uint32_t value);
 	void setServoValue(uint16_t value);
-
+	void setLaserRate(uint8_t value);
 	double depthValue;
 	base::Time depthTime;
 

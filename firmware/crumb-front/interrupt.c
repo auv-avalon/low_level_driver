@@ -11,7 +11,7 @@
 #define LASER_PIN			(_BV(5) | _BV(7))
 //#define MINWAITBETWEENSTARTS	(12000)	
 #define MINWAITBETWEENSTARTS	(0) //TODO mal richtigen wert rausfinden und nicht einfch abfangen	
-#define MINWAITTIME		20*147456 //20*10ms=200ms          //589824 // 40ms			147456 // 10ms
+#define MINWAITTIME		 5*147456 //20*10ms=200ms          //589824 // 40ms			147456 // 10ms
 #define MIN_DEPTH_FOR_LASER (-0.5/-0.00228881835938)
 #define PRESCALER               1//8//64//256
 #define STATE_SHORT1		1
@@ -20,6 +20,7 @@
 #define STATE_WAIT		4
 #define STATE_SAFETY		5
 #define MAX_TIMER_VALUE		65535
+#define LASER_ON		0
 
 volatile uint8_t	state;
 volatile uint16_t	adcDirect[8];
@@ -33,8 +34,8 @@ volatile int		currendADCPort=0;
 volatile uint16_t	timer0counter;
 volatile uint32_t	timer1counter;
 volatile uint16_t	frameCounter;
-volatile uint32_t	shortExposure=200000;//50000; // microseconds
-volatile uint32_t	longExposure=200000;//500000; // microseconds
+volatile uint32_t	shortExposure= 50000; //200000;//50000; // microseconds
+volatile uint32_t	longExposure=  50000; //200000;//500000; // microseconds
 volatile uint32_t	oldShortExposure;
 volatile uint32_t	oldLongExposure;
 volatile uint32_t	shortExposureTacts;
@@ -47,6 +48,8 @@ volatile uint8_t	stopping=0;
 volatile uint8_t 	ignore_laser_depth=0;
 //volatile uint16_t	skipper=0;
 volatile uint8_t	triggerEnabled;
+volatile char		laserOn = 0;
+volatile char		staticLaser = 0;
 extern volatile unsigned char ledState;
 extern volatile unsigned char laserEnabled=1;
 
@@ -164,7 +167,11 @@ ISR(TIMER1_COMPA_vect) {
 				state = STATE_SHORT2;
 			} else if(timer1counter*ICR1 >= shortExposureTacts) {
 				PORTB&= ~_BV(PORTB6); // cam off
-        	                //PORTB |= _BV(PORTB5); // laser on
+				if(laserOn){
+        	                	PORTB |= _BV(PORTB5); // laser on
+					if(staticLaser)
+						laserOn=0;
+				}
 			}
                         break;
 		}
@@ -177,7 +184,8 @@ ISR(TIMER1_COMPA_vect) {
 				state = STATE_LONG;
 			} else if(timer1counter*ICR1 >= shortExposureTacts) {
 				PORTB&= ~_BV(PORTB6); // cam off
-				PORTB&= ~_BV(PORTB5); // laser off
+				if(!staticLaser)
+					PORTB&= ~_BV(PORTB5); // laser off
 			}
 			break;
 		}
@@ -221,7 +229,8 @@ ISR(TIMER1_COMPA_vect) {
 		}
 		case STATE_SAFETY:
 		{
-			PORTB&= ~_BV(PORTB5); // laser off
+			if(!staticLaser)
+				PORTB&= ~_BV(PORTB5); // laser off
 			PORTB&= ~_BV(PORTB6); // cam off
 		}
 	}
@@ -254,4 +263,21 @@ ISR(ADC_vect) {
 	} else {
 		currendADCPort++;
 	}
+}
+
+void setLaserRate(uint8_t rate){
+   if(rate > 0){
+	shortExposure = (1000000 * rate) / 100;
+	longExposure  = (1000000 * rate) / 100;
+	initTimer();
+	laserOn = 1;
+  }else{
+	laserOn = 0;
+  }
+
+  if(rate == 100){
+	staticLaser = 1;
+  }else{
+	staticLaser = 0;
+  }
 }

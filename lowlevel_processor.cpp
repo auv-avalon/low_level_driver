@@ -177,8 +177,19 @@ void LowLevelProcessor::setServoValue(uint16_t value)
   targetServoValue = value;
 }
 
-
-
+void LowLevelProcessor::setLaserRate(uint8_t value)
+{
+  static const int len = 5;
+  uint8_t buff[len];
+  buff[0]='#';
+  buff[1]=len;
+  buff[2]=SetLaserRate;
+  buff[3]=value;
+  buff[4]='\n';
+  std::cout << value << std::endl;
+  std::cout << buff << std::endl;
+  writePacket(buff,len,200);
+}
 
 bool LowLevelProcessor::getData(bool reRequest){
   int bufsize = MAX_PACKET_SIZE;
