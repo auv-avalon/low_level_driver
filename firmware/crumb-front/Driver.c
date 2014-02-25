@@ -30,6 +30,7 @@ enum MessageType{
 	  Reset,
 	  CalibrateDepth,
 	  SetLaserRate,
+	  ActivateHighPowerLaser,
 	};
 
 //#define DEBUG 1
@@ -37,6 +38,9 @@ enum MessageType{
 uint8_t	buffer[FIFOSIZE]; //FIFO buffer
 uint8_t readPos,writePos;
 char buff[200];
+
+uint8_t laserActive;
+uint8_t laserOverflowCounter;
 
 //extern volatile uint8_t	emergency;
 
@@ -245,6 +249,9 @@ void processMessage(uint8_t *buffer){
     case SetLaserRate:
 	setLaserRate(buffer[3]);
 	break;
+    case ActivateHighPowerLaser:
+	keepHighPowerLaserActive();
+	break;
     default:{
       char buff[200];
       sprintf(buff,"Cannot Parse message Type %i,%i,%i,%i",buffer[0],buffer[1],buffer[2],buffer[3]);
@@ -303,6 +310,35 @@ void processBuffer(void){
   }
 }
 
+void keepHighPowerLaserActive(){
+    laserOverflowCounter=0;
+    laserActive=0;
+    PORTE |= _BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5);
+}
+
+void initWatchdog() {
+	TCCR3A	=	_BV(WGM31); 
+        TCCR3B	=       _BV(WGM32) | _BV(WGM33); //Fast PWM TOP ICR3; 
+	TCCR3C	=       _BV(CS32) | _BV(CS30); //1024 prescaler = 16000000/1024	 = 15 625
+	ICR3	=	1562; //~10hz counter in the end for generating interrupts
+	ETIMSK	&= 	_BV(TOIE3);	//Inttupt on HEAD overflot ~10ht
+	TCNT3	= 	0;	
+        PORTE   =       0; //Output aus
+        DDRE	|= 	_BV(DDE3) | _BV(DDE4) | _BV(DDE5); // Laser port as output
+        laserActive = 0;
+        laserOverflowCounter = 0;
+}
+
+ISR(TIMER3_OVF_vect) {
+    if(laserActive){
+        laserOverflowCounter++;
+        if(laserOverflowCounter > 10){
+            laserActive = 0;
+            PORTE &= ~_BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5);
+        }
+    }
+    
+}
 
 int main(void){
 	//DDRB =255;
@@ -312,7 +348,8 @@ int main(void){
 	uart1_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
 	uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
 
-	initServo();
+        initWatchdog();
+	//initServo();
 	initTimer();
 	//initADC();
 	

@@ -36,6 +36,7 @@ public:
 	  Reset,
 	  CalibrateDepth,
 	  SetLaserRate,
+	  ActivateHighPowerLaser,
 	};
 	
 	LowLevelProcessor();
@@ -52,6 +53,7 @@ public:
 	void setWaitingTime(uint32_t value);
 	void setServoValue(uint16_t value);
 	void setLaserRate(uint8_t value);
+	void keepHighPowerLaserActive();
 	double depthValue;
 	base::Time depthTime;
 

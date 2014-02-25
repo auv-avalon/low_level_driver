@@ -7,6 +7,11 @@ pkg_check_modules(IO REQUIRED "iodrivers_base")
 INCLUDE_DIRECTORIES(${IO_INCLUDE_DIRS})
 LINK_DIRECTORIES(${IO_LIBRARY_DIRS})
 
+add_executable(lowlevel_start_high_power_laser
+	lowlevel_processor.cpp
+        main-high_power_laser.cpp	
+)
+
 add_executable(lowlevel_led
 	lowlevel_processor.cpp
 	main-led.cpp
@@ -34,6 +39,10 @@ add_executable(lowlevel_test
 
 add_library(lowlevelDriver SHARED
 	lowlevel_processor.cpp
+)
+
+TARGET_LINK_LIBRARIES(lowlevel_start_high_power_laser 
+	${IO_LIBRARIES}
 )
 
 TARGET_LINK_LIBRARIES(lowlevelDriver 

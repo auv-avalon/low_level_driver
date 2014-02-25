@@ -191,6 +191,17 @@ void LowLevelProcessor::setLaserRate(uint8_t value)
   writePacket(buff,len,200);
 }
 
+void LowLevelProcessor::keepHighPowerLaserActive()
+{
+  static const int len = 4;
+  uint8_t buff[len];
+  buff[0]='#';
+  buff[1]=len;
+  buff[2]=ActivateHighPowerLaser;
+  buff[4]='\n';
+  writePacket(buff,len,200);
+}
+
 bool LowLevelProcessor::getData(bool reRequest){
   int bufsize = MAX_PACKET_SIZE;
   uint8_t packed[bufsize];
