@@ -316,7 +316,7 @@ void keepHighPowerLaserActive(uint8_t value){
         PORTE |= _BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5);
     }else{
         laserActive = 0;
-        PORTE &= ~_BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5);
+        PORTE &= ~(_BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5));
     }
 }
 
@@ -341,7 +341,7 @@ ISR(TIMER3_OVF_vect) {
         laserOverflowCounter++;
         if(laserOverflowCounter > 10){
             laserActive = 0;
-            PORTE &= ~_BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5);
+            PORTE &= ~(_BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5));
         }
     }
     //test=1;
