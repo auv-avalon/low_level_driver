@@ -318,9 +318,9 @@ void keepHighPowerLaserActive(){
 
 void initWatchdog() {
 	TCCR3A	=	_BV(WGM31); 
-        TCCR3B	=       _BV(WGM32) | _BV(WGM33); //Fast PWM TOP ICR3; 
-	TCCR3C	=       _BV(CS32) | _BV(CS30); //1024 prescaler = 16000000/1024	 = 15 625
-	ICR3	=	1562; //~10hz counter in the end for generating interrupts
+        TCCR3B	=       _BV(WGM32) | _BV(WGM33) | _BV(CS32) | _BV(CS30); //1024 prescaler = 16000000/1024 = 15 625 && Fast PWM TOP ICR3; 
+	TCCR3C	=       0;
+        ICR3	=	1562; //~10hz counter in the end for generating interrupts
 	ETIMSK	&= 	_BV(TOIE3);	//Inttupt on HEAD overflot ~10ht
 	TCNT3	= 	0;	
         PORTE   =       0; //Output aus
