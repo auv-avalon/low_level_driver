@@ -121,7 +121,6 @@ void set_leds(uint8_t leds) {
 	
 
 void processMessage(uint8_t *buffer){
-  sendString(buffer);
   switch(buffer[2]){
     case SetLEDValue:
     {
@@ -250,7 +249,7 @@ void processMessage(uint8_t *buffer){
 	setLaserRate(buffer[3]);
 	break;
     case ActivateHighPowerLaser:
-	keepHighPowerLaserActive();
+	keepHighPowerLaserActive(buffer[3]);
 	break;
     default:{
       char buff[200];
@@ -310,10 +309,15 @@ void processBuffer(void){
   }
 }
 
-void keepHighPowerLaserActive(){
-    laserOverflowCounter=0;
-    laserActive=0;
-    PORTE |= _BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5);
+void keepHighPowerLaserActive(uint8_t value){
+    if(value==1){
+        laserOverflowCounter=0;
+        laserActive=1;
+        PORTE |= _BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5);
+    }else{
+        laserActive = 0;
+        PORTE &= ~_BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5);
+    }
 }
 
 void initWatchdog() {
@@ -321,13 +325,16 @@ void initWatchdog() {
         TCCR3B	=       _BV(WGM32) | _BV(WGM33) | _BV(CS32) | _BV(CS30); //1024 prescaler = 16000000/1024 = 15 625 && Fast PWM TOP ICR3; 
 	TCCR3C	=       0;
         ICR3	=	1562; //~10hz counter in the end for generating interrupts
-	ETIMSK	&= 	_BV(TOIE3);	//Inttupt on HEAD overflot ~10ht
+	ETIMSK	|= 	_BV(TOIE3);	//Inttupt on HEAD overflot ~10ht
 	TCNT3	= 	0;	
         PORTE   =       0; //Output aus
         DDRE	|= 	_BV(DDE3) | _BV(DDE4) | _BV(DDE5); // Laser port as output
         laserActive = 0;
         laserOverflowCounter = 0;
 }
+
+//uint8_t test=0;
+
 
 ISR(TIMER3_OVF_vect) {
     if(laserActive){
@@ -337,7 +344,7 @@ ISR(TIMER3_OVF_vect) {
             PORTE &= ~_BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5);
         }
     }
-    
+    //test=1;
 }
 
 int main(void){
@@ -394,6 +401,15 @@ int main(void){
 	sendString("Crumb started");
 	
 	for(;;) {
+                /*
+                if(test){
+                    if(laserActive)
+                        sendString("Laser an");
+                    else
+                        sendString("Laser aus");
+                    test=0;
+                }
+                */
 		//sendString("Test");
 	  	unsigned int byte = uart1_getc();
 		while(byte != UART_NO_DATA){

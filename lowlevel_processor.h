@@ -54,6 +54,7 @@ public:
 	void setServoValue(uint16_t value);
 	void setLaserRate(uint8_t value);
 	void keepHighPowerLaserActive();
+        void deactivateHighPowerLaser();
 	double depthValue;
 	base::Time depthTime;
 

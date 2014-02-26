@@ -191,13 +191,26 @@ void LowLevelProcessor::setLaserRate(uint8_t value)
   writePacket(buff,len,200);
 }
 
-void LowLevelProcessor::keepHighPowerLaserActive()
+void LowLevelProcessor::deactivateHighPowerLaser()
 {
-  static const int len = 4;
+  static const int len = 5;
   uint8_t buff[len];
   buff[0]='#';
   buff[1]=len;
   buff[2]=ActivateHighPowerLaser;
+  buff[3]=0;
+  buff[4]='\n';
+  writePacket(buff,len,200);
+}
+
+void LowLevelProcessor::keepHighPowerLaserActive()
+{
+  static const int len = 5;
+  uint8_t buff[len];
+  buff[0]='#';
+  buff[1]=len;
+  buff[2]=ActivateHighPowerLaser;
+  buff[3]=1;
   buff[4]='\n';
   writePacket(buff,len,200);
 }

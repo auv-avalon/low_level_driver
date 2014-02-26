@@ -14,16 +14,46 @@ int main(int argc, char* argv[]) {
   LowLevelProcessor llpc;
 
   if(argc == 3){
-	uint8_t value = atoi(argv[2]);
+	uint16_t value = atoi(argv[2]);
 	if(value !=  666){
   		printf("You don't know what you are doing do Away, only for fulltime employees not for students\n");
 	        return -1;
 	}else{
-	    printf("Turning the laser on\n");
+	    printf("Laser should be off\n");
   	    llpc.init(std::string(argv[1]));
-            while(true){
-        	llpc.keepHighPowerLaserActive();
-                usleep(5000);
+            bool bla = true;
+            while(bla){
+                llpc.getData();
+                for(int i=0;i<10;i++){
+                    usleep(1000);
+                    llpc.getData();
+                }
+                printf("Activating laser\n");
+                for(int i=0;i<10;i++){
+                    llpc.getData();
+        	    llpc.keepHighPowerLaserActive();
+                    usleep(100);
+                }
+                printf("Deactivating laser\n");
+        	llpc.deactivateHighPowerLaser();
+                for(int i=0;i<10;i++){
+                    llpc.getData();
+                    usleep(1000);
+                }
+                printf("Activating laser\n");
+                for(int i=0;i<10;i++){
+                    llpc.getData();
+        	    llpc.keepHighPowerLaserActive();
+                    usleep(100);
+                }
+                printf("Waiting for laser Timeout");
+                for(int i=0;i<20;i++){
+                    llpc.getData();
+                    usleep(1000);
+                }
+
+                bla=false;
+//                printf("Start from beginning");
             }
 	}
   }else{
