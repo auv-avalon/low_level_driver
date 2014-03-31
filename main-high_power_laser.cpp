@@ -24,16 +24,19 @@ int main(int argc, char* argv[]) {
             bool bla = true;
             while(bla){
                 llpc.getData();
+                /*
                 for(int i=0;i<10;i++){
                     usleep(1000);
                     llpc.getData();
                 }
+                */
                 printf("Activating laser\n");
-                for(int i=0;i<10;i++){
+                for(int i=0;i<100000000;i++){
                     llpc.getData();
-        	    llpc.keepHighPowerLaserActive();
-                    usleep(100);
+//        	    llpc.keepHighPowerLaserActive();
+                    sleep(1);
                 }
+                /*
                 printf("Deactivating laser\n");
         	llpc.deactivateHighPowerLaser();
                 for(int i=0;i<10;i++){
@@ -51,9 +54,10 @@ int main(int argc, char* argv[]) {
                     llpc.getData();
                     usleep(1000);
                 }
-
+                
                 bla=false;
 //                printf("Start from beginning");
+                */
             }
 	}
   }else{

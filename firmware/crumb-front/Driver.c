@@ -292,8 +292,13 @@ void processBuffer(void){
     if(bytesAvailible() >= p[1]){ //Check Length
       if(p[p[1]-1] == '\n'){ //check Message End
 	processMessage(&buffer[readPos]); //Process Message
-	readPos+=p[1]-2;
-	readPos%=FIFOSIZE;
+        if(p[1] == 0){
+            //handle really broken messages, skipping "empty"
+            readPos++;
+        }else{
+            readPos+=p[1]-2;
+            readPos%=FIFOSIZE;
+        }
 	return;
       }else{
 	
