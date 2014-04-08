@@ -38,7 +38,7 @@ enum MessageType{
 uint8_t	buffer[FIFOSIZE]; //FIFO buffer
 uint8_t readPos,writePos;
 char buff[200];
-
+uint8_t send_depth=0;
 uint8_t laserActive;
 uint8_t laserOverflowCounter;
 
@@ -342,6 +342,7 @@ void initWatchdog() {
 
 
 ISR(TIMER3_OVF_vect) {
+    send_depth = 1;
     if(laserActive){
         laserOverflowCounter++;
         if(laserOverflowCounter > 10){
@@ -445,7 +446,6 @@ int main(void){
 		
 		
 		
-		
 	#if 0
 			uint16_t tempbuff[8];
 			int i;
@@ -466,10 +466,10 @@ int main(void){
 
 			loop=0;
 	#endif
-			
+                        			
 				
 			int32_t depth_reading = get_current_depth();
-			if(depth_reading != old_depth) {
+			if(send_depth) {
 				uint8_t buffer[8];
 				buffer[0] = '#';
 				buffer[1] = 8;
@@ -478,6 +478,7 @@ int main(void){
 				buffer[7] = '\n';
 				old_depth = depth_reading;
 				uart_send(buffer,8);
+                                send_depth=0;
 			}
 
 #if 0

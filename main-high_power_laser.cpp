@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
                 printf("Activating laser\n");
                 for(int i=0;i<100000000;i++){
                     llpc.getData();
-//        	    llpc.keepHighPowerLaserActive();
+        	    llpc.keepHighPowerLaserActive();
                     sleep(1);
                 }
                 /*
