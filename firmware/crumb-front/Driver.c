@@ -345,7 +345,7 @@ ISR(TIMER3_OVF_vect) {
     send_depth = 1;
     if(laserActive){
         laserOverflowCounter++;
-        if(laserOverflowCounter > 10){
+        if(laserOverflowCounter > 100){
             laserActive = 0;
             PORTE &= ~(_BV(PORTE3) | _BV(PORTE4) | _BV(PORTE5));
         }
